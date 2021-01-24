@@ -139,7 +139,7 @@ class Similarity:
         _tmp = _tmp.fillna(0)
         targets = _tmp.index.values
 
-        batches = ProcessingPipeline(targets, max_n = 1000).get_batches()
+        batches = ProcessingPipeline(len(targets), max_n = 1000).get_batches()
         all_top_similarity = None
         all_top_other_targets = None
         for (i, j) in batches:

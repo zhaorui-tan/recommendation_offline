@@ -1,4 +1,4 @@
-from data_processer import DataProcessing
+from data_processor import DataProcessing
 from CF import CF
 from popularity import Popularity
 from similarity import Similarity

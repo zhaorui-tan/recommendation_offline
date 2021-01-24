@@ -8,8 +8,8 @@ class ProcessingPipeline:
 
     # TODO : refine inputs
 
-    def __init__(self, targets, max_n: int):
-        self.L = len(targets)
+    def __init__(self, len_of_targets: int, max_n: int):
+        self.L = len_of_targets
         self.M = max_n
 
     def get_batches(self):
