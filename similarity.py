@@ -133,7 +133,7 @@ class Similarity:
 
     def _cluster_cosine_similarity(self, data: pd.DataFrame, target_col, content_col):
         print('Calculating cosine_similarity...')
-        _tmp = pd.DataFrame([1] * len(data), index = [data[target_col].tolist(), data[content_col].tolist()])
+        _tmp = pd.DataFrame([1] * len(data), index = [data[content_col].tolist(), data[target_col].tolist()])
         _tmp = _tmp[~_tmp.index.duplicated(keep = 'first')]
         _tmp = _tmp.unstack()
         _tmp = _tmp.fillna(0)
