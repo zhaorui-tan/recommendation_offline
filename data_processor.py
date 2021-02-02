@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 class DataProcessing:
-    def __init__(self, data, drop_col: list, dummy_col: list,time_col:list
+    def __init__(self, data, drop_col: list, dummy_col: list, time_col: list
                  , rename_pair: dict, str2num_col: list,
                  id_col: str):
         self.D = data
