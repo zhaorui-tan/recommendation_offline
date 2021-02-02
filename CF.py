@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 '''
 ################################################## CF calculation ######################################################
@@ -17,63 +16,70 @@ recommend_content_n | int
 
 
 class CF:
-    def __init__(self, TargetSim: pd.DataFrame, ContentSim: pd.DataFrame, top_n: int,
+    def __init__(self, targets, TargetSim: pd.DataFrame, ContentSim: pd.DataFrame, top_n: int,
                  order: pd.DataFrame, target_col: str, content_col: str, Popularity = None,
-                 user_group_type: pd.DataFrame = None):
+                 user_group_type = None):
+        self.targets = targets
         self.TargetSim = TargetSim
         self.ContentSim = ContentSim
         self.Pop = Popularity
         self.O = order
         # self.S_keys = sim.columns.values.astype('int')
         self.N = top_n
-        self.L = len(TargetSim)
+        self.L = len(TargetSim) if TargetSim is not None else 0
         self.T = target_col
         self.C = content_col
         self.UG = user_group_type
 
     def _get_targets_top_n_corr_targets(self):
-        targets = np.unique(self.TargetSim['target_id'].values)
+        if self.targets is None:
+            return None
         top_n_corr_targets = []
-        for t in targets:
+        for t in self.targets:
             top_n_corr_targets.append(self.TargetSim[self.TargetSim['target_id'] == t]['corr_target_id'].tolist())
-        return targets, top_n_corr_targets
+        return top_n_corr_targets
 
     def _get_corr_targets_contents(self, targets, current_contents):
+        if self.targets is None or current_contents is None:
+            return None
         other_contents = []
-        for t in targets:
-            other_contents += self.O[self.O[self.T] == t][self.C].tolist()
-        other_contents = list(set(other_contents))
-        return [i for i in other_contents if i not in current_contents]
+        other_contents += self.O[self.O[self.T].isin(targets)][self.C].tolist()
+        return list(set(other_contents) ^ set(current_contents))
 
     def _get_curr_contents_similar_contents(self, current_contents):
+        if current_contents is None:
+            return None
         similar_contents = []
-        for c in current_contents:
-            similar_contents += self.ContentSim[self.ContentSim['target_id'] == c]['corr_target_id'].tolist()
-        return [i for i in similar_contents if i not in current_contents]
+        similar_contents += self.ContentSim[self.ContentSim['target_id'].isin(current_contents)][
+            'corr_target_id'].tolist()
+        return list(set(similar_contents) ^ set(current_contents))
 
     def _get_recommend_contents(self):
-        targets, top_n_corr_targets = self._get_targets_top_n_corr_targets()
-        recommends = []
+        if self.targets is None or self.O is None:
+            self.recommends = None
+            return
 
-        for i in range(len(targets)):
-            curr_target = targets[i]
+        top_n_corr_targets = self._get_targets_top_n_corr_targets()
+        recommends = []
+        pop_list = []
+        if self.Pop is not None:
+            pop_list = self.Pop[self.Pop['concat_grp_type'] == self.UG]['popular_item'].tolist()
+
+        for i in range(len(self.targets)):
+            curr_target = self.targets[i]
             curr_contents = self._get_corr_targets_contents([curr_target], [])
+
             recommend_contents = self._get_corr_targets_contents(top_n_corr_targets[i], curr_contents) + \
                                  self._get_curr_contents_similar_contents(curr_contents)
             top_n_contents = recommend_contents[:self.N] if len(recommend_contents) > self.N else recommend_contents
             if len(top_n_contents) < self.N:
-                if self.Pop is not None:
-                    target_type = self.UG[self.UG[self.T] == curr_target]['concat_grp_type'].values
-                    if len(target_type) > 0:
-                        pop_list = self.Pop[self.Pop['concat_grp_type'] == target_type[0]]['popular_item'].tolist()
-                        top_n_contents += pop_list[:self.N - len(top_n_contents)] if pop_list else [None] * (
-                                self.N - len(top_n_contents))
+                top_n_contents += pop_list[:self.N - len(top_n_contents)] if pop_list else [None] * (
+                        self.N - len(top_n_contents))
             recommends.append(top_n_contents)
         self.recommends = recommends
-        self.targets = targets
+        return
 
     def get_recommend_contents_df(self):
-
         print('getting recommend_contents_df')
         self._get_recommend_contents()
         if self.recommends:
@@ -84,4 +90,4 @@ class CF:
             df['target_id '] = self.targets
             return df
         else:
-            return None
+            return
