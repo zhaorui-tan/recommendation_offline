@@ -7,7 +7,6 @@ class ProcessingPipeline:
     """
 
     # TODO : refine inputs
-
     def __init__(self, len_of_targets: int, max_n: int):
         self.L = len_of_targets
         self.M = max_n
