@@ -6,8 +6,11 @@ class ProcessingPipeline:
     pipeline
     """
 
-    # TODO : refine inputs
     def __init__(self, len_of_targets: int, max_n: int):
+        '''
+        :param len_of_targets: 当前需要batch的数据总长度
+        :param max_n: 每个batch最多多少条数据
+        '''
         self.L = len_of_targets
         self.M = max_n
 
